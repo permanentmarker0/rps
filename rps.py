@@ -1,53 +1,42 @@
-#Created by Mark Chen
-#2022/06/24
-#
-#
-#
-#
 add_library('minim')
 
-CHOICES = 'rps'
-player_choice = None
-computer_choice = CHOICES[int(random(2))]
-playerwonnum=0
-computerwonnum=0
-gameWon = False
-gamePause = False
-
-nTotalFramsForPause=180
-nTotalFramsForPauseElapsed=0
 
 def setup():
-    global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum
+    global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum, pageid
     size(1000, 600)
     background(0)
     textAlign(CENTER)
     rockimage = loadImage('rock.png')
     scissorsimage = loadImage('scissors.png')
     paperimage = loadImage('paper.png')
-    computer_choice = CHOICES[int(random(2))]
-    playerwonnum=0
-    computerwonnum=0
+    pageid = 0
+    gameReset()
 
 def draw():
-    global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum,gamePause,nTotalFramsForPauseElapsed,nTotalFramsForPause
+    global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum,nTotalFramsForPauseElapsed,nTotalFramsForPause,pageid
     background(0)   
-    if gamePause:
-        if nTotalFramsForPauseElapsed > nTotalFramsForPause:
-            gamePause=False
+    if pageid == 1:
+        if  (playerwonnum >= 2 or computerwonnum >= 2 ):
+            pageid=3
+        else:
+            gameStartScreen()
+    elif  pageid == 2:
+        if   nTotalFramsForPauseElapsed<=nTotalFramsForPause:
+            gamePauseScreen()
+            nTotalFramsForPauseElapsed += 1
+        else:
             player_choice=''
             computer_choice=CHOICES[int(random(2))]
             nTotalFramsForPauseElapsed=0
-    
-    if not gamePause and (playerwonnum >= 2 or computerwonnum >= 2 ):
-        endScreen()
-    elif gamePause:           
-        nTotalFramsForPauseElapsed += 1;
-        pauseResult()
+            pageid = 1
+            
+    elif  pageid == 3:
+        goodByeScreen()
     else:
-        startScreen()    
+        welcomeScreen()
 
-def startScreen():
+
+def welcomeScreen():
     #Title
     image(rockimage, 100, 200,200,200)
     image(paperimage , 350, 200,200,200)
@@ -56,13 +45,27 @@ def startScreen():
     #Instructions
     fill(255)
     textSize(30)
-    text("Click Rock or Paper or scossprs, to beat computer", 400, 50)
+    text("Welcome to play Rock/Paper/Seccors game with computer", 470, 50)
 
     
-    text("Computer : You", 300, 500)
-    text(str(computerwonnum) + " : " + str(playerwonnum), 300, 550)
+    text("Press DOWN key to start a game", 500, 500)
+
+def gameStartScreen():
+    #Title
+    image(rockimage, 100, 200,200,200)
+    image(paperimage , 350, 200,200,200)
+    image(scissorsimage, 600, 200,200,200)
     
-def pauseResult():
+    #Instructions
+    fill(255)
+    textSize(30)
+    text("Click Rock or Paper or scossprs, to beat computer", 500, 50)
+
+    
+    text("Computer : You", 500, 500)
+    text(str(computerwonnum) + " : " + str(playerwonnum), 500, 550)
+    
+def gamePauseScreen():
     global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum
 
     if computer_choice=='r':
@@ -87,25 +90,25 @@ def pauseResult():
     nResutlt=getWinner(player_choice, computer_choice)
     
     if nResutlt >0 :        
-        text("You win", 300, 500)
+        text("You win", 500, 500)
     elif nResutlt <0 :
-        text("Computer win", 300, 500)   
+        text("Computer win", 500, 500)   
     else :
-        text("draw", 300, 500)
+        text("draw", 500, 500)
 
                     
-def endScreen():
+def goodByeScreen():
     global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum
 
     fill(255)
-    textSize(30)
+    textSize(80)
     if playerwonnum >= 2:
-        text("You won. " + str(playerwonnum) + " : " + str(computerwonnum), 400, 50)
+        text("You won. " + str(playerwonnum) + " : " + str(computerwonnum), 500, 300)
     if computerwonnum >= 2:
-        text("Computer won. " + str(computerwonnum) + " : " + str(playerwonnum), 400, 50)
+        text("Computer won. " + str(computerwonnum) + " : " + str(playerwonnum), 500, 300)
     
-    
-    text("Press UP key to play again.", 300, 500)
+    textSize(30)
+    text("Press UP key to play again.", 500, 500)
  
 #1-> player win
 #-1-> computer win
@@ -133,9 +136,9 @@ def is_draw(player_choice, computer_choice):
     
                                                                                         
 def mousePressed():
-    global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum,gamePause
+    global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum,pageid
     
-    if not gamePause:
+    if pageid==1:
         player_choice = None        
         
         if mouseX > 100 and mouseX < 300 and mouseY>200 and mouseY<400 :
@@ -162,14 +165,37 @@ def mousePressed():
             elif nResutlt < 0 :
                 computerwonnum +=1
             
-            gamePause=True
+            pageid = 2
+            nTotalFramsForPauseElapsed=0
+            
+
+def gameReset():
+    global CHOICES, player_choice, computer_choice, playerwonnum, computerwonnum, nTotalFramsForPause, nTotalFramsForPauseElapsed
+    CHOICES = 'rps'
+    player_choice = None
+    computer_choice = CHOICES[int(random(2))]
+    playerwonnum=0
+    computerwonnum=0
+    
+    nTotalFramsForPause=180
+    nTotalFramsForPauseElapsed=0
+
+            
             
 def keyPressed():    
-    global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum,gamePause
-    if keyCode==38:
+    global rockimage, scissorsimage, paperimage,CHOICES,player_choice,computer_choice,playerwonnum,computerwonnum, pageid
+    print(str(keyCode))
+    if pageid == 0 and keyCode == 40:
+        pageid = 1
+        
+    elif pageid == 1 and keyCode==38:
         if playerwonnum >=2 or computerwonnum>=2 :
             computer_choice = CHOICES[int(random(2))]
             playerwonnum=0
             computerwonnum=0
-            gameWon = False
-            gamePause = False
+            pageid = 1
+            
+    elif pageid == 3 and keyCode==38:
+        pageid = 1
+        gameReset()
+            
